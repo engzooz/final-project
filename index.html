@@ -1,0 +1,3363 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StudyFlow - Advanced Task Manager</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="D:\New folder\to-do-list.png">
+
+    <style>
+        :root {
+            --primary: #4361ee;
+            --primary-light: #4895ef;
+            --primary-dark: #3a0ca3;
+            --secondary: #7209b7;
+            --accent: #f72585;
+            --success: #4cc9f0;
+            --warning: #f8961e;
+            --danger: #e63946;
+            --dark: #1d3557;
+            --light: #f1faee;
+            --card-bg: #ffffff;
+            --sidebar-bg: #f8fafc;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            --radius: 12px;
+            --animation-speed: 0.5s;
+        }
+
+        [dir="rtl"] {
+            --direction: -1;
+        }
+
+        [dir="ltr"] {
+            --direction: 1;
+        }
+
+        .dark-mode {
+            --primary: #4895ef;
+            --primary-light: #4cc9f0;
+            --primary-dark: #3a0ca3;
+            --secondary: #b5179e;
+            --accent: #f72585;
+            --success: #4ade80;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --dark: #f8fafc;
+            --light: #1e293b;
+            --card-bg: #1e293b;
+            --sidebar-bg: #0f172a;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #4a90e2 100%);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+            min-height: 100vh;
+            color: var(--dark);
+            overflow-x: hidden;
+            transition: var(--transition);
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .dark-mode body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            background-size: 400% 400%;
+        }
+
+        .app-container {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            grid-template-rows: 80px 1fr;
+            grid-template-areas: 
+                "sidebar header"
+                "sidebar main";
+            min-height: 100vh;
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .dark-mode .app-container {
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        header {
+            grid-area: header;
+            background: var(--card-bg);
+            padding: 0 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: var(--shadow);
+            z-index: 10;
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            width: 100%;
+        }
+
+        .search-bar {
+            flex: 1;
+            max-width: 500px;
+            position: relative;
+        }
+
+        .search-bar input {
+            width: 100%;
+            padding: 12px 20px 12px 45px;
+            border: none;
+            border-radius: 50px;
+            background: var(--light);
+            font-size: 0.95rem;
+            transition: var(--transition);
+            color: var(--dark);
+        }
+
+        .search-bar input:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px var(--primary-light);
+        }
+
+        .search-bar i {
+            position: absolute;
+            left: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--dark);
+            opacity: 0.7;
+        }
+
+        .user-actions {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .icon-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--light);
+            border: none;
+            color: var(--dark);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .icon-btn:hover {
+            background: var(--primary);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .sidebar {
+            grid-area: sidebar;
+            background: var(--sidebar-bg);
+            padding: 30px 0;
+            display: flex;
+            flex-direction: column;
+            box-shadow: var(--shadow);
+            z-index: 10;
+            overflow-y: auto;
+            transition: var(--transition);
+        }
+
+        .logo {
+            padding: 0 25px 30px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            margin-bottom: 25px;
+        }
+
+        .dark-mode .logo {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .logo i {
+            font-size: 1.8rem;
+            color: var(--primary);
+        }
+
+        .logo h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--dark);
+        }
+
+        .nav-section {
+            padding: 0 20px;
+            margin-bottom: 30px;
+        }
+
+        .nav-title {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--dark);
+            opacity: 0.6;
+            margin-bottom: 15px;
+            padding-left: 10px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 15px;
+            border-radius: var(--radius);
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: var(--transition);
+            color: var(--dark);
+            text-decoration: none;
+        }
+
+        .nav-item:hover {
+            background: rgba(67, 97, 238, 0.1);
+            transform: translateX(5px);
+        }
+
+        .nav-item.active {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 5px 15px rgba(67, 97, 238, 0.3);
+        }
+
+        .nav-item i {
+            font-size: 1.1rem;
+            width: 20px;
+            text-align: center;
+        }
+
+        .category-badge {
+            margin-left: auto;
+            background: var(--primary-light);
+            color: white;
+            padding: 3px 8px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            min-width: 24px;
+            text-align: center;
+        }
+
+        .progress-section {
+            padding: 20px;
+            background: var(--card-bg);
+            margin: 0 15px 25px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+        }
+
+        .progress-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .progress-circle {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 15px;
+        }
+
+        .progress-circle svg {
+            transform: rotate(-90deg);
+            width: 100%;
+            height: 100%;
+        }
+
+        .progress-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        main {
+            grid-area: main;
+            padding: 30px;
+            overflow-y: auto;
+        }
+
+        .content-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .content-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--dark);
+        }
+
+        .date-display {
+            color: var(--dark);
+            opacity: 0.7;
+            font-size: 1rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 20px;
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            transition: var(--transition);
+            animation: slideInUp 0.5s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-card:hover .stat-icon {
+            transform: scale(1.1) rotate(5deg);
+        }
+
+        .stat-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: var(--radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            transition: var(--transition);
+        }
+
+        .stat-icon.primary {
+            background: rgba(67, 97, 238, 0.1);
+            color: var(--primary);
+        }
+
+        .stat-icon.success {
+            background: rgba(76, 201, 240, 0.1);
+            color: var(--success);
+        }
+
+        .stat-icon.warning {
+            background: rgba(248, 150, 30, 0.1);
+            color: var(--warning);
+        }
+
+        .stat-icon.danger {
+            background: rgba(230, 57, 70, 0.1);
+            color: var(--danger);
+        }
+
+        .stat-info {
+            flex: 1;
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            line-height: 1;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: var(--dark);
+            opacity: 0.7;
+        }
+
+        .task-container {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 25px;
+            box-shadow: var(--shadow);
+            margin-bottom: 30px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .task-controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+
+        .task-input {
+            flex: 1;
+            min-width: 250px;
+            position: relative;
+        }
+
+        .task-input input {
+            width: 100%;
+            padding: 15px 20px;
+            border: none;
+            border-radius: var(--radius);
+            background: var(--light);
+            font-size: 1rem;
+            transition: var(--transition);
+            color: var(--dark);
+        }
+
+        .task-input input:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px var(--primary-light);
+        }
+
+        .task-options {
+            display: flex;
+            gap: 10px;
+        }
+
+        .select-group {
+            position: relative;
+        }
+
+        .select-group select {
+            padding: 15px 40px 15px 15px;
+            border: none;
+            border-radius: var(--radius);
+            background: var(--light);
+            font-size: 0.9rem;
+            appearance: none;
+            cursor: pointer;
+            min-width: 150px;
+            color: var(--dark);
+        }
+
+        .select-group i {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            pointer-events: none;
+        }
+
+        .quick-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .action-btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: var(--radius);
+            background: var(--light);
+            color: var(--dark);
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .action-btn:hover {
+            background: var(--primary);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .action-btn.primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .task-filters {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 20px;
+            background: var(--light);
+            color: var(--dark);
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .filter-btn.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .task-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            max-height: 500px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+
+        .task-item {
+            background: var(--light);
+            border-radius: var(--radius);
+            padding: 18px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            transition: var(--transition);
+            position: relative;
+            cursor: grab;
+            animation: slideInUp var(--animation-speed) ease;
+        }
+
+        .task-item.entering {
+            animation: slideInRight var(--animation-speed) ease;
+        }
+
+        .task-item.exiting {
+            animation: slideOutLeft var(--animation-speed) ease forwards;
+        }
+
+        .task-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .task-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 4px;
+            border-radius: 4px 0 0 4px;
+        }
+
+        .task-item.high-priority::before {
+            background: var(--danger);
+        }
+
+        .task-item.medium-priority::before {
+            background: var(--warning);
+        }
+
+        .task-item.low-priority::before {
+            background: var(--success);
+        }
+
+        .task-checkbox {
+            width: 20px;
+            height: 20px;
+            border-radius: 6px;
+            border: 2px solid var(--primary);
+            cursor: pointer;
+            position: relative;
+            flex-shrink: 0;
+            transition: var(--transition);
+        }
+
+        .task-checkbox.checked {
+            background: var(--primary);
+        }
+
+        .task-checkbox.checked::after {
+            content: '✓';
+            position: absolute;
+            color: white;
+            font-size: 12px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .task-content {
+            flex: 1;
+        }
+
+        .task-title {
+            font-size: 1.05rem;
+            font-weight: 500;
+            margin-bottom: 5px;
+        }
+
+        .task-meta {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .task-tag {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .task-tag.priority-high {
+            background: rgba(230, 57, 70, 0.1);
+            color: var(--danger);
+        }
+
+        .task-tag.priority-medium {
+            background: rgba(248, 150, 30, 0.1);
+            color: var(--warning);
+        }
+
+        .task-tag.priority-low {
+            background: rgba(76, 201, 240, 0.1);
+            color: var(--success);
+        }
+
+        .task-tag.category {
+            background: rgba(114, 9, 183, 0.1);
+            color: var(--secondary);
+        }
+
+        .task-date {
+            background: rgba(67, 97, 238, 0.1);
+            color: var(--primary);
+        }
+
+        .task-progress {
+            width: 100%;
+            height: 4px;
+            background: var(--light);
+            border-radius: 2px;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+
+        .task-progress-bar {
+            height: 100%;
+            background: var(--primary);
+            transition: width 0.3s ease;
+            border-radius: 2px;
+        }
+
+        .task-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .task-btn {
+            width: 35px;
+            height: 35px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .task-btn.edit {
+            color: var(--primary);
+        }
+
+        .task-btn.delete {
+            color: var(--danger);
+        }
+
+        .task-btn:hover {
+            background: rgba(0, 0, 0, 0.05);
+            transform: scale(1.1);
+        }
+
+        .stopwatch-container {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 25px;
+            box-shadow: var(--shadow);
+            margin-bottom: 30px;
+        }
+
+        .stopwatch-display {
+            font-size: 3rem;
+            font-weight: 700;
+            font-family: monospace;
+            color: var(--dark);
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .stopwatch-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+            justify-content: center;
+        }
+
+        .stopwatch-btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 50px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .stopwatch-btn.start {
+            background: var(--success);
+            color: white;
+        }
+
+        .stopwatch-btn.pause {
+            background: var(--warning);
+            color: white;
+        }
+
+        .stopwatch-btn.reset {
+            background: var(--light);
+            color: var(--dark);
+        }
+
+        .stopwatch-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .current-task {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(67, 97, 238, 0.05);
+            border-radius: var(--radius);
+        }
+
+        .current-task h3 {
+            font-size: 1rem;
+            margin-bottom: 10px;
+            color: var(--dark);
+            opacity: 0.7;
+        }
+
+        .current-task p {
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: var(--dark);
+        }
+
+        .calendar-container {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 20px;
+            box-shadow: var(--shadow);
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+        }
+
+        .calendar-day {
+            text-align: center;
+            padding: 10px 5px;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 0.8rem;
+        }
+
+        .calendar-date {
+            text-align: center;
+            padding: 10px 5px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 0.9rem;
+        }
+
+        .calendar-date:hover {
+            background: rgba(67, 97, 238, 0.1);
+        }
+
+        .calendar-date.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .calendar-date.has-tasks::after {
+            content: '';
+            display: block;
+            width: 4px;
+            height: 4px;
+            background: var(--accent);
+            border-radius: 50%;
+            margin: 3px auto 0;
+        }
+
+        .focus-mode {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            display: none;
+        }
+
+        .focus-mode.active {
+            display: flex;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .focus-task {
+            font-size: 2rem;
+            line-height: 1.4;
+            margin-bottom: 30px;
+            text-align: center;
+            max-width: 80%;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+
+        .focus-timer {
+            font-size: 4rem;
+            font-family: monospace;
+            margin-bottom: 30px;
+        }
+
+        .focus-controls {
+            display: flex;
+            gap: 15px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.active {
+            display: flex;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            border-radius: 20px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+            width: 90%;
+            max-width: 500px;
+            padding: 30px;
+            transform: translateY(50px);
+            transition: transform 0.4s ease;
+        }
+
+        .modal.active .modal-content {
+            transform: translateY(0);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .close-modal {
+            background: transparent;
+            color: var(--dark);
+            box-shadow: none;
+            padding: 5px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+        }
+
+        .close-modal:hover {
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--dark);
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: none;
+            border-radius: var(--radius);
+            background: var(--light);
+            font-size: 1rem;
+            color: var(--dark);
+        }
+
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 15px;
+        }
+
+        .form-row .form-group {
+            flex: 1;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: flex-end;
+        }
+
+        .btn-cancel {
+            background: var(--light);
+            color: var(--dark);
+        }
+
+        .btn-save {
+            background: var(--primary);
+            color: white;
+        }
+
+        .confirmation-modal .modal-content {
+            max-width: 400px;
+        }
+
+        .confirmation-text {
+            text-align: center;
+            margin-bottom: 25px;
+            font-size: 1.1rem;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 50px 20px;
+            color: var(--dark);
+            opacity: 0.5;
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 20px;
+        }
+
+        .empty-state p {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+        }
+
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: var(--radius);
+            background: var(--card-bg);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transform: translateX(100%);
+            opacity: 0;
+            transition: all 0.4s ease;
+            z-index: 1001;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        .toast.success {
+            border-left: 4px solid var(--success);
+        }
+
+        .toast.error {
+            border-left: 4px solid var(--danger);
+        }
+
+        .toast.warning {
+            border-left: 4px solid var(--warning);
+        }
+
+        .toast.info {
+            border-left: 4px solid var(--primary);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: var(--light);
+            border-radius: 3px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--primary);
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+
+        .category-progress {
+            margin: 15px 0;
+        }
+
+        .category-progress-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+        }
+
+        .settings-container {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 25px;
+            box-shadow: var(--shadow);
+            margin-top: 30px;
+        }
+
+        .settings-group {
+            margin-bottom: 25px;
+        }
+
+        .settings-group h3 {
+            margin-bottom: 15px;
+            color: var(--dark);
+            font-size: 1.2rem;
+        }
+
+        .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .dark-mode .setting-item {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .setting-info {
+            flex: 1;
+        }
+
+        .setting-title {
+            font-weight: 500;
+            margin-bottom: 5px;
+        }
+
+        .setting-desc {
+            font-size: 0.9rem;
+            opacity: 0.7;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .toggle-slider {
+            background-color: var(--primary);
+        }
+
+        input:checked + .toggle-slider:before {
+            transform: translateX(26px);
+        }
+
+        .onboarding-tour {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 2000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .onboarding-tour.active {
+            display: flex;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .tour-step {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            text-align: center;
+        }
+
+        .tour-step h3 {
+            margin-bottom: 15px;
+            color: var(--primary);
+        }
+
+        .tour-step p {
+            margin-bottom: 25px;
+            line-height: 1.6;
+        }
+
+        .tour-actions {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .help-section {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 25px;
+            box-shadow: var(--shadow);
+            margin-top: 30px;
+        }
+
+        .help-content {
+            margin-top: 20px;
+        }
+
+        .help-content h4 {
+            margin: 15px 0 10px;
+            color: var(--primary);
+        }
+
+        .help-content p {
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(100px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes slideOutLeft {
+            from {
+                opacity: 1;
+                transform: translateX(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateX(-100px);
+            }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-8px); }
+            40%, 80% { transform: translateX(8px); }
+        }
+
+        .pulse {
+            animation: pulse 0.5s ease;
+        }
+
+        .shake {
+            animation: shake 0.5s ease;
+        }
+
+        @media (max-width: 1100px) {
+            .task-section {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .app-container {
+                grid-template-columns: 1fr;
+                grid-template-areas: 
+                    "header"
+                    "main";
+            }
+            
+            .sidebar {
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                height: 100%;
+                width: 280px;
+                z-index: 100;
+                transform: translateX(-100%);
+            }
+            
+            .sidebar.active {
+                display: flex;
+                transform: translateX(0);
+            }
+            
+            .mobile-menu-btn {
+                display: flex;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .task-controls {
+                flex-direction: column;
+            }
+            
+            .quick-actions {
+                justify-content: space-between;
+            }
+            
+            .task-options {
+                width: 100%;
+                justify-content: space-between;
+            }
+            
+            .stopwatch-display {
+                font-size: 2.5rem;
+            }
+            
+            .stopwatch-controls {
+                flex-direction: column;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header-content {
+                flex-direction: column;
+                gap: 15px;
+                align-items: flex-start;
+            }
+            
+            .search-bar {
+                max-width: 100%;
+            }
+            
+            .stat-card {
+                padding: 15px;
+            }
+            
+            .stat-value {
+                font-size: 1.5rem;
+            }
+            
+            .task-controls {
+                gap: 10px;
+            }
+            
+            .action-btn {
+                padding: 10px 15px;
+                font-size: 0.9rem;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .stat-card {
+                padding: 12px;
+            }
+            
+            .task-item {
+                padding: 15px;
+            }
+            
+            .task-meta {
+                gap: 5px;
+            }
+            
+            .task-tag {
+                padding: 3px 8px;
+                font-size: 0.7rem;
+            }
+        }
+
+        .mobile-menu-btn {
+            display: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--light);
+            border: none;
+            color: var(--dark);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .connection-status {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 10px 15px;
+            border-radius: var(--radius);
+            background: var(--card-bg);
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.4s ease;
+            z-index: 1001;
+        }
+
+        .connection-status.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .connection-status.online {
+            border-left: 4px solid var(--success);
+        }
+
+        .connection-status.offline {
+            border-left: 4px solid var(--warning);
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary-light);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary);
+        }
+
+        [dir="rtl"] .search-bar i {
+            left: auto;
+            right: 18px;
+        }
+
+        [dir="rtl"] .search-bar input {
+            padding: 12px 45px 12px 20px;
+        }
+
+        [dir="rtl"] .select-group i {
+            left: 15px;
+            right: auto;
+        }
+
+        [dir="rtl"] .task-item::before {
+            left: auto;
+            right: 0;
+        }
+
+        [dir="rtl"] .nav-item:hover {
+            transform: translateX(-5px);
+        }
+
+        [dir="rtl"] .category-badge {
+            margin-left: 0;
+            margin-right: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <header>
+            <div class="header-content">
+                <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle menu">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="search-bar">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Search tasks..." id="searchInput">
+                </div>
+                <div class="user-actions">
+                    <button class="icon-btn" id="focusModeBtn" title="Focus Mode">
+                        <i class="fas fa-crosshairs"></i>
+                    </button>
+                    <button class="icon-btn" id="themeToggle" title="Toggle Theme">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                    <button class="icon-btn" id="helpBtn" title="Help">
+                        <i class="fas fa-question-circle"></i>
+                    </button>
+                    <button class="icon-btn" id="settingsBtn" title="Settings">
+                        <i class="fas fa-cog"></i>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <aside class="sidebar" id="sidebar">
+            <div class="logo">
+                <i class="fas fa-laptop-code"></i>
+                <h1>StudyFlow</h1>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-title">Main</div>
+                <a href="#" class="nav-item active" data-page="dashboard">
+                    <i class="fas fa-home"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="#" class="nav-item" data-page="tasks">
+                    <i class="fas fa-tasks"></i>
+                    <span>My Tasks</span>
+                    <span class="category-badge" id="allTasksCount">0</span>
+                </a>
+                <a href="#" class="nav-item" data-page="help">
+                    <i class="fas fa-question-circle"></i>
+                    <span>Help</span>
+                </a>
+                <a href="#" class="nav-item" data-page="settings">
+                    <i class="fas fa-cog"></i>
+                    <span>Settings</span>
+                </a>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-title">Categories</div>
+                <a href="#" class="nav-item" data-category="all">
+                    <i class="fas fa-tasks"></i>
+                    <span>All Tasks</span>
+                    <span class="category-badge" id="allCount">0</span>
+                </a>
+                <a href="#" class="nav-item" data-category="programming">
+                    <i class="fas fa-code"></i>
+                    <span>Programming</span>
+                    <span class="category-badge" id="programmingCount">0</span>
+                </a>
+                <a href="#" class="nav-item" data-category="theory">
+                    <i class="fas fa-book"></i>
+                    <span>Theory</span>
+                    <span class="category-badge" id="theoryCount">0</span>
+                </a>
+                <a href="#" class="nav-item" data-category="projects">
+                    <i class="fas fa-project-diagram"></i>
+                    <span>Projects</span>
+                    <span class="category-badge" id="projectsCount">0</span>
+                </a>
+                <a href="#" class="nav-item" data-category="exams">
+                    <i class="fas fa-graduation-cap"></i>
+                    <span>Exams</span>
+                    <span class="category-badge" id="examsCount">0</span>
+                </a>
+            </div>
+
+            <div class="progress-section">
+                <div class="progress-title">
+                    <i class="fas fa-chart-pie"></i>
+                    Study Progress
+                </div>
+                <div class="progress-circle">
+                    <svg viewBox="0 0 100 100">
+                        <circle cx="50" cy="50" r="45" fill="none" stroke="#e6e6e6" stroke-width="8"/>
+                        <circle cx="50" cy="50" r="45" fill="none" stroke="#4361ee" stroke-width="8" stroke-dasharray="283" stroke-dashoffset="283"/>
+                    </svg>
+                    <div class="progress-text">0%</div>
+                </div>
+            </div>
+        </aside>
+
+        <main>
+            <div class="page active" id="dashboard-page">
+                <div class="content-header">
+                    <h2 class="content-title">Today's Tasks</h2>
+                    <div class="date-display" id="currentDate">Monday, September 18, 2023</div>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon primary">
+                            <i class="fas fa-tasks"></i>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-value" id="totalTasks">0</div>
+                            <div class="stat-label">Total Tasks</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon success">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-value" id="completedTasks">0</div>
+                            <div class="stat-label">Completed</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon warning">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-value" id="pendingTasks">0</div>
+                            <div class="stat-label">Pending</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon danger">
+                            <i class="fas fa-exclamation-circle"></i>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-value" id="overdueTasks">0</div>
+                            <div class="stat-label">Overdue</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="task-container">
+                    <div class="section-header">
+                        <h3 class="section-title">My Tasks</h3>
+                        <div class="quick-actions">
+                            <button class="action-btn" id="sortTasksBtn">
+                                <i class="fas fa-sort"></i>
+                                Sort
+                            </button>
+                            <button class="action-btn" id="advancedFilterBtn">
+                                <i class="fas fa-filter"></i>
+                                Filter
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="task-controls">
+                        <div class="task-input">
+                            <input type="text" id="taskInput" placeholder="Add a new task...">
+                        </div>
+                        <div class="task-options">
+                            <div class="select-group">
+                                <select id="prioritySelect">
+                                    <option value="low">Low Priority</option>
+                                    <option value="medium">Medium Priority</option>
+                                    <option value="high">High Priority</option>
+                                </select>
+                                <i class="fas fa-chevron-down"></i>
+                            </div>
+                            <div class="select-group">
+                                <select id="categorySelect">
+                                    <option value="programming">Programming</option>
+                                    <option value="theory">Theory</option>
+                                    <option value="projects">Projects</option>
+                                    <option value="exams">Exams</option>
+                                </select>
+                                <i class="fas fa-chevron-down"></i>
+                            </div>
+                        </div>
+                        <div class="quick-actions">
+                            <button class="action-btn primary" id="addTaskBtn">
+                                <i class="fas fa-plus"></i>
+                                Add Task
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="task-filters">
+                        <button class="filter-btn active" data-filter="all">All Tasks</button>
+                        <button class="filter-btn" data-filter="active">Active</button>
+                        <button class="filter-btn" data-filter="completed">Completed</button>
+                        <button class="filter-btn" data-filter="today">Due Today</button>
+                    </div>
+
+                    <div class="task-list" id="taskList">
+                        <div class="empty-state" id="emptyState">
+                            <i class="fas fa-check-circle"></i>
+                            <p>You don't have any tasks yet</p>
+                            <p>Add a task to get started!</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stopwatch-container" id="stopwatch-section">
+                    <h3 class="section-title">Study Stopwatch</h3>
+                    <div class="stopwatch-display" id="stopwatchDisplay">00:00:00</div>
+                    <div class="stopwatch-controls">
+                        <button class="stopwatch-btn start" id="startStopwatch">
+                            <i class="fas fa-play"></i>
+                            Start
+                        </button>
+                        <button class="stopwatch-btn pause" id="pauseStopwatch">
+                            <i class="fas fa-pause"></i>
+                            Pause
+                        </button>
+                        <button class="stopwatch-btn reset" id="resetStopwatch">
+                            <i class="fas fa-redo"></i>
+                            Reset
+                        </button>
+                    </div>
+                    <div class="current-task">
+                        <h3>Current Task</h3>
+                        <p id="currentTask">No task selected</p>
+                    </div>
+                </div>
+
+                <div class="calendar-container">
+                    <div class="calendar-header">
+                        <button id="prevMonth"><i class="fas fa-chevron-left"></i></button>
+                        <h4 id="currentMonth">September 2023</h4>
+                        <button id="nextMonth"><i class="fas fa-chevron-right"></i></button>
+                    </div>
+                    <div class="calendar-grid" id="calendarGrid">
+                    </div>
+                </div>
+            </div>
+
+            <div class="page" id="help-page">
+                <div class="content-header">
+                    <h2 class="content-title">StudyFlow Help Guide</h2>
+                    <div class="date-display">How to use StudyFlow effectively</div>
+                </div>
+
+                <div class="help-section">
+                    <h3>Getting Started</h3>
+                    <div class="help-content">
+                        <h4>Adding Tasks</h4>
+                        <p>Type your task in the input field and press Enter or click "Add Task". You can set priority and category for better organization.</p>
+                        
+                        <h4>Focus Mode</h4>
+                        <p>Click on any task and then press the Focus Mode button to enter a distraction-free environment for that specific task.</p>
+                        
+                        <h4>Stopwatch</h4>
+                        <p>Use the stopwatch to track your study time. Start, pause, or reset it as needed.</p>
+                        
+                        <h4>Keyboard Shortcuts</h4>
+                        <p>Use Ctrl+N to add a new task, / to focus on search, and Esc to close popups.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="page" id="settings-page">
+                <div class="content-header">
+                    <h2 class="content-title">Settings</h2>
+                    <div class="date-display">Customize your StudyFlow experience</div>
+                </div>
+
+                <div class="settings-container">
+                    <div class="settings-group">
+                        <h3>Appearance</h3>
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <div class="setting-title">Dark Mode</div>
+                                <div class="setting-desc">Switch between light and dark themes</div>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="darkModeToggle">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="settings-group">
+                        <h3>Focus Mode</h3>
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <div class="setting-title">Auto-start Focus</div>
+                                <div class="setting-desc">Start focus mode when selecting a task</div>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="autoFocusToggle">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <div class="setting-title">Focus Duration</div>
+                                <div class="setting-desc">Default focus session length</div>
+                            </div>
+                            <select id="focusDurationSelect">
+                                <option value="25">25 minutes</option>
+                                <option value="50">50 minutes</option>
+                                <option value="90">90 minutes</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="settings-group">
+                        <h3>Notifications</h3>
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <div class="setting-title">Task Reminders</div>
+                                <div class="setting-desc">Get notified about upcoming tasks</div>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="remindersToggle">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="settings-group">
+                        <h3>Data Management</h3>
+                        <div class="quick-actions" style="margin-top: 20px;">
+                            <button class="action-btn" id="exportDataBtn">
+                                <i class="fas fa-file-export"></i>
+                                Export Data
+                            </button>
+                            <button class="action-btn" id="importDataBtn">
+                                <i class="fas fa-file-import"></i>
+                                Import Data
+                            </button>
+                            <button class="action-btn danger" id="clearDataBtn">
+                                <i class="fas fa-trash"></i>
+                                Clear All Data
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div class="focus-mode" id="focusMode">
+        <div class="focus-task" id="focusTask">No task selected</div>
+        <div class="focus-timer" id="focusTimer">25:00</div>
+        <div class="focus-controls">
+            <button class="stopwatch-btn start" id="focusStart">
+                <i class="fas fa-play"></i> Start
+            </button>
+            <button class="stopwatch-btn pause" id="focusPause">
+                <i class="fas fa-pause"></i> Pause
+            </button>
+            <button class="stopwatch-btn reset" id="focusExit">
+                <i class="fas fa-times"></i> Exit
+            </button>
+        </div>
+    </div>
+
+    <div class="modal" id="taskModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Task Details</h3>
+                <button class="close-modal" id="closeModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="editTaskText">Task Description</label>
+                    <textarea id="editTaskText" placeholder="Enter task description"></textarea>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="editTaskPriority">Priority</label>
+                        <select id="editTaskPriority">
+                            <option value="low">Low Priority</option>
+                            <option value="medium">Medium Priority</option>
+                            <option value="high">High Priority</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="editTaskCategory">Category</label>
+                        <select id="editTaskCategory">
+                            <option value="programming">Programming</option>
+                            <option value="theory">Theory</option>
+                            <option value="projects">Projects</option>
+                            <option value="exams">Exams</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="editTaskStartDate">Start Date</label>
+                        <input type="date" id="editTaskStartDate">
+                    </div>
+                    <div class="form-group">
+                        <label for="editTaskEndDate">End Date</label>
+                        <input type="date" id="editTaskEndDate">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="editTaskNotes">Notes</label>
+                    <textarea id="editTaskNotes" placeholder="Additional notes..."></textarea>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="action-btn btn-cancel" id="cancelEdit">Cancel</button>
+                <button class="action-btn btn-save" id="saveTask">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal confirmation-modal" id="confirmationModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Confirm Action</h3>
+                <button class="close-modal" id="closeConfirmationModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="confirmation-text" id="confirmationText">
+                Are you sure you want to delete this task?
+            </div>
+            <div class="modal-actions">
+                <button class="action-btn btn-cancel" id="cancelAction">Cancel</button>
+                <button class="action-btn btn-save" id="confirmAction">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="onboarding-tour" id="onboardingTour">
+        <div class="tour-step" data-step="1">
+            <h3>Welcome to StudyFlow!</h3>
+            <p>This is your dashboard where you can manage all your study tasks and track your progress.</p>
+            <div class="tour-actions">
+                <button class="action-btn btn-cancel" id="skipTour">Skip Tour</button>
+                <button class="action-btn primary next-step">Next</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast">
+        <i class="fas fa-check-circle"></i>
+        <span id="toastText">Task added successfully!</span>
+    </div>
+
+    <div class="connection-status" id="connectionStatus">
+        <i class="fas fa-wifi"></i>
+        <span id="connectionText">You are back online</span>
+    </div>
+
+    <script>
+        class TaskManager {
+            constructor() {
+                this.tasks = this.loadTasks();
+                this.currentEditId = null;
+                this.confirmationCallback = null;
+                this.initDB();
+                this.initNotifications();
+                this.startDeadlineCheck();
+                this.checkPendingNotifications();
+            }
+
+            initNotifications() {
+                if ("Notification" in window) {
+                    Notification.requestPermission();
+                }
+            }
+
+            startDeadlineCheck() {
+                setInterval(() => this.checkDeadlines(), 60000);
+            }
+
+            storePendingNotification(task) {
+                let pendingNotifications = JSON.parse(localStorage.getItem('pendingNotifications') || '[]');
+                pendingNotifications.push({
+                    taskId: task.id,
+                    deadline: task.endDate,
+                    text: task.text,
+                    timestamp: new Date().getTime()
+                });
+                localStorage.setItem('pendingNotifications', JSON.stringify(pendingNotifications));
+            }
+
+            checkPendingNotifications() {
+                const pendingNotifications = JSON.parse(localStorage.getItem('pendingNotifications') || '[]');
+                const now = new Date().getTime();
+                const validNotifications = pendingNotifications.filter(notification => {
+                    const deadline = new Date(notification.deadline).getTime();
+                    const timeDiff = deadline - now;
+                    const hoursLeft = timeDiff / (1000 * 60 * 60);
+                    return hoursLeft <= 24 && hoursLeft > 0;
+                });
+
+                validNotifications.forEach(notification => {
+                    const task = this.tasks.find(t => t.id === notification.taskId);
+                    if (task && !task.notified && !task.completed) {
+                        this.sendDeadlineNotification(task);
+                    }
+                });
+
+                localStorage.setItem('pendingNotifications', JSON.stringify([]));
+            }
+
+            checkDeadlines() {
+                const now = new Date();
+                this.tasks.forEach(task => {
+                    if (task.endDate) {
+                        const deadline = new Date(task.endDate);
+                        const timeDiff = deadline.getTime() - now.getTime();
+                        const hoursLeft = timeDiff / (1000 * 60 * 60);
+
+                        if (hoursLeft <= 24 && hoursLeft > 0 && !task.notified && !task.completed) {
+                            this.storePendingNotification(task);
+                            this.sendDeadlineNotification(task);
+                            task.notified = true;
+                            this.saveTasks();
+                        }
+                    }
+                });
+            }
+
+            sendDeadlineNotification(task) {
+                if (Notification.permission === "granted") {
+                    const deadline = new Date(task.endDate);
+                    const options = {
+                        body: `المهمة "${task.text}" ستنتهي في ${deadline.toLocaleDateString()} ${deadline.toLocaleTimeString()}`,
+                        icon: "D:\\New folder\\to-do-list.png",
+                        dir: "rtl"
+                    };
+                    new Notification("تنبيه: موعد نهائي للمهمة يقترب", options);
+                }
+            }
+
+            async initDB() {
+                setInterval(() => this.checkDeadlines(), 60000);
+                
+                return new Promise((resolve, reject) => {
+                    const request = indexedDB.open('StudyFlowDB', 1);
+                    
+                    request.onerror = () => {
+                        console.error('Failed to open database');
+                        resolve(null);
+                    };
+                    
+                    request.onsuccess = () => {
+                        this.db = request.result;
+                        console.log('Database opened successfully');
+                        resolve(this.db);
+                    };
+                    
+                    request.onupgradeneeded = (event) => {
+                        const db = event.target.result;
+                        if (!db.objectStoreNames.contains('tasks')) {
+                            const store = db.createObjectStore('tasks', { keyPath: 'id' });
+                            store.createIndex('category', 'category', { unique: false });
+                            store.createIndex('completed', 'completed', { unique: false });
+                        }
+                    };
+                });
+            }
+
+            loadTasks() {
+                try {
+                    const savedTasks = localStorage.getItem('studyTasks');
+                    if (savedTasks) {
+                        const tasks = JSON.parse(savedTasks);
+                        console.log('Loaded tasks from localStorage:', tasks);
+                        return Array.isArray(tasks) ? tasks : [];
+                    }
+                } catch (e) {
+                    console.error('Error loading from localStorage:', e);
+                }
+                
+                return [];
+            }
+
+            async saveTasks() {
+                try {
+                    localStorage.setItem('studyTasks', JSON.stringify(this.tasks));
+                    console.log('Tasks saved to localStorage:', this.tasks);
+                } catch (e) {
+                    console.error('Error saving to localStorage:', e);
+                    return false;
+                }
+
+                if (this.db) {
+                    try {
+                        const transaction = this.db.transaction(['tasks'], 'readwrite');
+                        const store = transaction.objectStore('tasks');
+                        
+                        await store.clear();
+                        
+                        for (const task of this.tasks) {
+                            store.add(task);
+                        }
+                        
+                        console.log('Tasks saved to IndexedDB');
+                        return true;
+                    } catch (e) {
+                        console.error('Error saving to IndexedDB:', e);
+                    }
+                }
+                
+                return true;
+            }
+
+            addTask(task) {
+                if (!this.validateTask(task)) {
+                    return false;
+                }
+
+                this.tasks.unshift(task);
+                return this.saveTasks();
+            }
+
+            updateTask(id, updatedTask) {
+                if (!this.validateTask(updatedTask)) {
+                    return false;
+                }
+
+                const index = this.tasks.findIndex(task => task.id === id);
+                if (index !== -1) {
+                    this.tasks[index] = { ...this.tasks[index], ...updatedTask };
+                    return this.saveTasks();
+                }
+                return false;
+            }
+
+            deleteTask(id) {
+                this.tasks = this.tasks.filter(task => task.id !== id);
+                return this.saveTasks();
+            }
+
+            toggleTask(id) {
+                const task = this.tasks.find(task => task.id === id);
+                if (task) {
+                    task.completed = !task.completed;
+                    return this.saveTasks();
+                }
+                return false;
+            }
+
+            validateTask(task) {
+                if (!task.text || task.text.trim() === '') {
+                    return false;
+                }
+                
+                if (!['low', 'medium', 'high'].includes(task.priority)) {
+                    return false;
+                }
+                
+                if (!['programming', 'theory', 'projects', 'exams'].includes(task.category)) {
+                    return false;
+                }
+                
+                return true;
+            }
+
+            getTasksByFilter(filter, category = 'all', searchTerm = '') {
+                return this.tasks.filter(task => {
+                    if (searchTerm && 
+                        !task.text.toLowerCase().includes(searchTerm.toLowerCase()) &&
+                        !(task.notes && task.notes.toLowerCase().includes(searchTerm.toLowerCase()))) {
+                        return false;
+                    }
+                    
+                    if (category !== 'all' && task.category !== category) {
+                        return false;
+                    }
+                    
+                    switch (filter) {
+                        case 'active':
+                            return !task.completed;
+                        case 'completed':
+                            return task.completed;
+                        case 'today':
+                            const today = new Date().toISOString().split('T')[0];
+                            return task.endDate === today;
+                        default:
+                            return true;
+                    }
+                });
+            }
+
+            getStats() {
+                const totalTasks = this.tasks.length;
+                const completedTasks = this.tasks.filter(task => task.completed).length;
+                const pendingTasks = totalTasks - completedTasks;
+                
+                const today = new Date().toISOString().split('T')[0];
+                const overdueTasks = this.tasks.filter(task => 
+                    !task.completed && task.endDate && task.endDate < today
+                ).length;
+                
+                return {
+                    totalTasks,
+                    completedTasks,
+                    pendingTasks,
+                    overdueTasks
+                };
+            }
+
+            getCategoryCounts() {
+                return {
+                    'all': this.tasks.length,
+                    'programming': this.tasks.filter(task => task.category === 'programming').length,
+                    'theory': this.tasks.filter(task => task.category === 'theory').length,
+                    'projects': this.tasks.filter(task => task.category === 'projects').length,
+                    'exams': this.tasks.filter(task => task.category === 'exams').length
+                };
+            }
+
+            exportData() {
+                const data = {
+                    tasks: this.tasks,
+                    exportDate: new Date().toISOString(),
+                    version: '1.0'
+                };
+                
+                const dataStr = JSON.stringify(data, null, 2);
+                const dataBlob = new Blob([dataStr], {type: 'application/json'});
+                
+                return URL.createObjectURL(dataBlob);
+            }
+
+            importData(jsonData) {
+                try {
+                    const data = JSON.parse(jsonData);
+                    
+                    if (!data.tasks || !Array.isArray(data.tasks)) {
+                        return { success: false, message: 'Invalid data format' };
+                    }
+                    
+                    for (const task of data.tasks) {
+                        if (!this.validateTask(task)) {
+                            return { success: false, message: 'Invalid task data found' };
+                        }
+                    }
+                    
+                    this.tasks = data.tasks;
+                    this.saveTasks();
+                    return { success: true, message: 'Data imported successfully' };
+                } catch (e) {
+                    return { success: false, message: 'Failed to parse JSON data' };
+                }
+            }
+        }
+
+        class NotificationManager {
+            constructor(taskManager) {
+                this.taskManager = taskManager;
+                this.permission = null;
+                this.checkPermission();
+            }
+
+            async checkPermission() {
+                if ('Notification' in window) {
+                    this.permission = Notification.permission;
+                    
+                    if (this.permission === 'default') {
+                        this.permission = await Notification.requestPermission();
+                    }
+                }
+            }
+
+            scheduleTaskReminders() {
+                if (!('Notification' in window) || this.permission !== 'granted') {
+                    return;
+                }
+
+                const now = new Date();
+                const oneHourFromNow = new Date(now.getTime() + 60 * 60 * 1000);
+                
+                this.taskManager.tasks.forEach(task => {
+                    if (!task.completed && task.endDate) {
+                        const taskDueDate = new Date(task.endDate);
+                        
+                        if (taskDueDate <= oneHourFromNow && taskDueDate > now) {
+                            this.showReminder(task);
+                        }
+                    }
+                });
+            }
+
+            showReminder(task) {
+                if (!('Notification' in window) || this.permission !== 'granted') {
+                    return;
+                }
+
+                new Notification('StudyFlow Reminder', {
+                    body: `Task due soon: ${task.text}`,
+                    icon: '/icon.png',
+                    tag: `task-${task.id}`
+                });
+            }
+
+            showBrowserNotification(title, message) {
+                if (!('Notification' in window) || this.permission !== 'granted') {
+                    return;
+                }
+
+                new Notification(title, {
+                    body: message,
+                    icon: '/icon.png'
+                });
+            }
+        }
+
+        class SettingsManager {
+            constructor() {
+                this.settings = this.loadSettings();
+            }
+
+            getDefaultSettings() {
+                return {
+                    appearance: {
+                        darkMode: false
+                    },
+                    focus: {
+                        autoStart: false,
+                        defaultDuration: 25
+                    },
+                    notifications: {
+                        reminders: true,
+                        browserNotifications: true
+                    },
+                    onboarding: {
+                        completed: false
+                    },
+                    language: 'en'
+                };
+            }
+
+            updateSetting(category, key, value) {
+                if (this.settings[category] && this.settings[category][key] !== undefined) {
+                    this.settings[category][key] = value;
+                    this.saveSettings();
+                    return true;
+                }
+                return false;
+            }
+
+            loadSettings() {
+                try {
+                    const saved = localStorage.getItem('studyFlowSettings');
+                    return saved ? JSON.parse(saved) : this.getDefaultSettings();
+                } catch (e) {
+                    console.error('Error loading settings:', e);
+                    return this.getDefaultSettings();
+                }
+            }
+
+            saveSettings() {
+                try {
+                    localStorage.setItem('studyFlowSettings', JSON.stringify(this.settings));
+                    return true;
+                } catch (e) {
+                    console.error('Error saving settings:', e);
+                    return false;
+                }
+            }
+        }
+
+        class UIManager {
+            constructor(taskManager, settingsManager) {
+                this.taskManager = taskManager;
+                this.settingsManager = settingsManager;
+                this.notificationManager = new NotificationManager(taskManager);
+                this.currentLanguage = this.settingsManager.settings.language || 'en';
+                
+                this.currentFilter = 'all';
+                this.currentCategory = 'all';
+                this.draggedTask = null;
+                this.currentPage = 'dashboard';
+                
+                this.initializeElements();
+                this.initializeEventListeners();
+                this.initializeApp();
+                
+                setInterval(() => {
+                    this.notificationManager.scheduleTaskReminders();
+                }, 60 * 1000);
+            }
+
+            initializeElements() {
+                this.taskInput = document.getElementById('taskInput');
+                this.prioritySelect = document.getElementById('prioritySelect');
+                this.categorySelect = document.getElementById('categorySelect');
+                this.addTaskBtn = document.getElementById('addTaskBtn');
+                this.taskList = document.getElementById('taskList');
+                this.emptyState = document.getElementById('emptyState');
+                this.filterBtns = document.querySelectorAll('.filter-btn');
+                this.categoryItems = document.querySelectorAll('.nav-item[data-category]');
+                this.totalTasksEl = document.getElementById('totalTasks');
+                this.completedTasksEl = document.getElementById('completedTasks');
+                this.pendingTasksEl = document.getElementById('pendingTasks');
+                this.overdueTasksEl = document.getElementById('overdueTasks');
+                this.taskModal = document.getElementById('taskModal');
+                this.closeModal = document.getElementById('closeModal');
+                this.cancelEdit = document.getElementById('cancelEdit');
+                this.saveTaskBtn = document.getElementById('saveTask');
+                this.toast = document.getElementById('toast');
+                this.toastText = document.getElementById('toastText');                
+                this.themeToggle = document.getElementById('themeToggle');
+                this.focusModeBtn = document.getElementById('focusModeBtn');
+                this.focusMode = document.getElementById('focusMode');
+                this.focusTask = document.getElementById('focusTask');
+                this.focusTimer = document.getElementById('focusTimer');
+                this.focusStart = document.getElementById('focusStart');
+                this.focusPause = document.getElementById('focusPause');
+                this.focusExit = document.getElementById('focusExit');                
+                this.stopwatchDisplay = document.getElementById('stopwatchDisplay');
+                this.startStopwatch = document.getElementById('startStopwatch');
+                this.pauseStopwatch = document.getElementById('pauseStopwatch');
+                this.resetStopwatch = document.getElementById('resetStopwatch');
+                this.currentTaskEl = document.getElementById('currentTask');                
+                this.calendarGrid = document.getElementById('calendarGrid');
+                this.currentMonthEl = document.getElementById('currentMonth');
+                this.prevMonthBtn = document.getElementById('prevMonth');
+                this.nextMonthBtn = document.getElementById('nextMonth');                
+                this.searchInput = document.getElementById('searchInput');
+                this.confirmationModal = document.getElementById('confirmationModal');
+                this.closeConfirmationModal = document.getElementById('closeConfirmationModal');
+                this.cancelAction = document.getElementById('cancelAction');
+                this.confirmAction = document.getElementById('confirmAction');
+                this.confirmationText = document.getElementById('confirmationText');                
+                this.settingsBtn = document.getElementById('settingsBtn');
+                this.helpBtn = document.getElementById('helpBtn');
+                this.sortTasksBtn = document.getElementById('sortTasksBtn');
+                this.advancedFilterBtn = document.getElementById('advancedFilterBtn');
+                this.pages = document.querySelectorAll('.page');
+                this.navItems = document.querySelectorAll('.nav-item[data-page]');                
+                this.exportDataBtn = document.getElementById('exportDataBtn');
+                this.importDataBtn = document.getElementById('importDataBtn');
+                this.clearDataBtn = document.getElementById('clearDataBtn');                
+                this.darkModeToggle = document.getElementById('darkModeToggle');
+                this.autoFocusToggle = document.getElementById('autoFocusToggle');
+                this.focusDurationSelect = document.getElementById('focusDurationSelect');
+                this.remindersToggle = document.getElementById('remindersToggle');                
+                this.mobileMenuBtn = document.getElementById('mobileMenuBtn');
+                this.sidebar = document.getElementById('sidebar');                
+                this.onboardingTour = document.getElementById('onboardingTour');
+                this.skipTour = document.getElementById('skipTour');
+                this.nextStep = document.querySelector('.next-step');                
+                this.connectionStatus = document.getElementById('connectionStatus');
+                this.connectionText = document.getElementById('connectionText');                
+                this.editTaskText = document.getElementById('editTaskText');
+                this.editTaskPriority = document.getElementById('editTaskPriority');
+                this.editTaskCategory = document.getElementById('editTaskCategory');
+                this.editTaskStartDate = document.getElementById('editTaskStartDate');
+                this.editTaskEndDate = document.getElementById('editTaskEndDate');
+                this.editTaskNotes = document.getElementById('editTaskNotes');                
+                this.stopwatchInterval = null;
+                this.stopwatchSeconds = 0;
+                this.isStopwatchRunning = false;
+                this.focusTimerInterval = null;
+                this.focusTimerSeconds = 25 * 60;
+                this.isFocusModeRunning = false;                
+                this.currentDate = new Date();
+                this.currentMonth = this.currentDate.getMonth();
+                this.currentYear = this.currentDate.getFullYear();                
+                this.currentTourStep = 1;
+            }
+
+            initializeEventListeners() {
+                this.addTaskBtn.addEventListener('click', () => this.addTask());
+                this.taskInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') this.addTask();
+                });                
+                this.filterBtns.forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        this.filterBtns.forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
+                        this.currentFilter = btn.getAttribute('data-filter');
+                        this.renderTasks();
+                    });
+                });
+                
+                this.categoryItems.forEach(item => {
+                    item.addEventListener('click', () => {
+                        this.categoryItems.forEach(i => i.classList.remove('active'));
+                        item.classList.add('active');
+                        this.currentCategory = item.getAttribute('data-category');
+                        this.renderTasks();
+                    });
+                });                
+                this.closeModal.addEventListener('click', () => this.hideModal());
+                this.cancelEdit.addEventListener('click', () => this.hideModal());
+                this.saveTaskBtn.addEventListener('click', () => this.saveTaskChanges());                
+                this.closeConfirmationModal.addEventListener('click', () => this.hideConfirmationModal());
+                this.cancelAction.addEventListener('click', () => this.hideConfirmationModal());
+                this.confirmAction.addEventListener('click', () => {
+                    if (this.taskManager.confirmationCallback) {
+                        this.taskManager.confirmationCallback();
+                        this.taskManager.confirmationCallback = null;
+                    }
+                    this.hideConfirmationModal();
+                });
+                
+                this.themeToggle.addEventListener('click', () => this.toggleTheme());
+                this.focusModeBtn.addEventListener('click', () => this.scrollToStopwatch());
+                this.focusExit.addEventListener('click', () => this.exitFocusMode());
+                
+                this.startStopwatch.addEventListener('click', () => this.startStopwatchTimer());
+                this.pauseStopwatch.addEventListener('click', () => this.pauseStopwatchTimer());
+                this.resetStopwatch.addEventListener('click', () => this.resetStopwatchTimer());                
+                this.focusStart.addEventListener('click', () => this.startFocusTimer());
+                this.focusPause.addEventListener('click', () => this.pauseFocusTimer());                
+                this.prevMonthBtn.addEventListener('click', () => this.prevMonth());
+                this.nextMonthBtn.addEventListener('click', () => this.nextMonth());                
+                this.searchInput.addEventListener('input', () => this.renderTasks());                
+                this.exportDataBtn.addEventListener('click', () => this.exportData());
+                this.importDataBtn.addEventListener('click', () => this.importData());                
+                this.sortTasksBtn.addEventListener('click', () => this.showSortOptions());
+                this.advancedFilterBtn.addEventListener('click', () => this.showAdvancedFilters());                
+                this.navItems.forEach(item => {
+                    item.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        const page = item.getAttribute('data-page');
+                        this.showPage(page);
+                        
+                        if (window.innerWidth <= 768) {
+                            this.sidebar.classList.remove('active');
+                        }
+                    });
+                });
+                
+                this.settingsBtn.addEventListener('click', () => {
+                    this.showPage('settings');
+                    setTimeout(() => {
+                        document.getElementById('settings-page').scrollIntoView({ behavior: 'smooth' });
+                    }, 100);
+                });
+                
+                this.helpBtn.addEventListener('click', () => {
+                    this.showPage('help');
+                    setTimeout(() => {
+                        document.getElementById('help-page').scrollIntoView({ behavior: 'smooth' });
+                    }, 100);
+                });
+                
+                this.darkModeToggle.addEventListener('change', (e) => {
+                    this.settingsManager.updateSetting('appearance', 'darkMode', e.target.checked);
+                    if (e.target.checked) {
+                        document.body.classList.add('dark-mode');
+                        this.themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+                    } else {
+                        document.body.classList.remove('dark-mode');
+                        this.themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
+                    }
+                });
+                
+                this.autoFocusToggle.addEventListener('change', (e) => {
+                    this.settingsManager.updateSetting('focus', 'autoStart', e.target.checked);
+                });
+                
+                this.focusDurationSelect.addEventListener('change', (e) => {
+                    this.settingsManager.updateSetting('focus', 'defaultDuration', parseInt(e.target.value));
+                    this.focusTimerSeconds = parseInt(e.target.value) * 60;
+                    this.updateFocusTimerDisplay();
+                });
+                
+                this.remindersToggle.addEventListener('change', (e) => {
+                    this.settingsManager.updateSetting('notifications', 'reminders', e.target.checked);
+                    
+                    if (e.target.checked) {
+                        this.notificationManager.checkPermission();
+                    }
+                });
+                
+                this.clearDataBtn.addEventListener('click', () => {
+                    this.showConfirmationModal(
+                        'Are you sure you want to clear all data?',
+                        () => this.clearAllData()
+                    );
+                });
+                
+                this.mobileMenuBtn.addEventListener('click', () => {
+                    this.sidebar.classList.toggle('active');
+                });
+                
+                document.addEventListener('click', (e) => {
+                    if (window.innerWidth <= 768 && 
+                        this.sidebar.classList.contains('active') &&
+                        !this.sidebar.contains(e.target) &&
+                        e.target !== this.mobileMenuBtn) {
+                        this.sidebar.classList.remove('active');
+                    }
+                });                
+                this.skipTour.addEventListener('click', () => {
+                    this.onboardingTour.classList.remove('active');
+                    this.settingsManager.updateSetting('onboarding', 'completed', true);
+                });
+                
+                this.nextStep.addEventListener('click', () => {
+                    this.nextTourStep();
+                });
+                
+                window.addEventListener('online', () => {
+                    this.showConnectionStatus('You are back online', 'online');
+                });
+                
+                window.addEventListener('offline', () => {
+                    this.showConnectionStatus('You are offline', 'offline');
+                });                
+                const today = new Date().toISOString().split('T')[0];
+                this.editTaskStartDate.value = today;
+                this.editTaskEndDate.value = today;                
+                this.loadSettings();                
+                this.notificationManager.checkPermission();                
+                this.setupKeyboardShortcuts();
+            }
+
+            initializeApp() {
+                this.renderTasks();
+                this.updateStats();
+                this.updateCategoryCounts();
+                this.renderCalendar();
+                this.updateStopwatchDisplay();
+                this.updateFocusTimerDisplay();
+                this.setCurrentDate();
+                this.applyLanguage();                
+                if (!this.settingsManager.settings.onboarding.completed) {
+                    setTimeout(() => {
+                        this.onboardingTour.classList.add('active');
+                    }, 1000);
+                }
+            }
+
+            setCurrentDate() {
+                const currentDateElement = document.getElementById('currentDate');
+                const now = new Date();
+                const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+                currentDateElement.textContent = now.toLocaleDateString('en-US', options);
+            }
+
+            showPage(page) {
+                this.pages.forEach(p => p.classList.remove('active'));                
+                document.getElementById(`${page}-page`).classList.add('active');                
+                this.navItems.forEach(item => {
+                    item.classList.remove('active');
+                    if (item.getAttribute('data-page') === page) {
+                        item.classList.add('active');
+                    }
+                });
+                this.currentPage = page;                
+                window.scrollTo(0, 0);
+            }
+
+            loadSettings() {
+                const settings = this.settingsManager.settings;                
+                if (settings.appearance.darkMode) {
+                    document.body.classList.add('dark-mode');
+                    this.darkModeToggle.checked = true;
+                    this.themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+                }
+                
+                this.autoFocusToggle.checked = settings.focus.autoStart;
+                this.focusDurationSelect.value = settings.focus.defaultDuration.toString();
+                this.focusTimerSeconds = settings.focus.defaultDuration * 60;
+                this.remindersToggle.checked = settings.notifications.reminders;
+                
+                this.updateFocusTimerDisplay();
+            }
+
+            setupKeyboardShortcuts() {
+                document.addEventListener('keydown', (e) => {
+                    if (e.ctrlKey && e.key === 'n') {
+                        e.preventDefault();
+                        this.taskInput.focus();
+                    }                    
+                    if (e.key === 'Escape') {
+                        this.hideModal();
+                        this.hideConfirmationModal();
+                        this.onboardingTour.classList.remove('active');
+                        this.focusMode.classList.remove('active');
+                    }                    
+                    if (e.key === '/' && !e.ctrlKey) {
+                        e.preventDefault();
+                        this.searchInput.focus();
+                    }
+                });
+            }
+
+            async addTask() {
+                const text = this.taskInput.value.trim();
+                if (text === '') {
+                    this.shakeElement(this.taskInput);
+                    this.showToast('Please enter a task', 'error');
+                    return;
+                }
+                
+                const task = {
+                    id: Date.now(),
+                    text: text,
+                    priority: this.prioritySelect.value,
+                    category: this.categorySelect.value,
+                    startDate: new Date().toISOString().split('T')[0],
+                    endDate: new Date().toISOString().split('T')[0],
+                    notes: '',
+                    completed: false,
+                    notified: false,
+                    createdAt: new Date().toISOString()
+                };
+                
+                if (await this.taskManager.addTask(task)) {
+                    this.renderTasks();
+                    this.updateStats();
+                    this.updateCategoryCounts();
+                    this.renderCalendar();                    
+                    if (this.settingsManager.settings.notifications.reminders) {
+                        this.notificationManager.showBrowserNotification(
+                            'Task Added',
+                            `Task added: ${task.text}`
+                        );
+                    }                    
+                    this.taskInput.value = '';
+                    this.taskInput.focus();                    
+                    const newTaskElement = document.getElementById(`task-${task.id}`);
+                    if (newTaskElement) {
+                        newTaskElement.classList.add('pulse');
+                    }
+                    this.showToast('Task added successfully!', 'success');
+                } else {
+                    this.showToast('Failed to add task', 'error');
+                }
+            }
+
+            renderTasks() {
+                const searchTerm = this.searchInput.value;
+                const filteredTasks = this.taskManager.getTasksByFilter(
+                    this.currentFilter, 
+                    this.currentCategory, 
+                    searchTerm
+                );
+                
+                if (filteredTasks.length === 0) {
+                    this.emptyState.style.display = 'block';
+                    this.taskList.innerHTML = '';
+                    this.taskList.appendChild(this.emptyState);
+                    return;
+                }
+                
+                this.emptyState.style.display = 'none';
+                
+                this.taskList.innerHTML = '';
+                filteredTasks.forEach(task => {
+                    const taskElement = this.createTaskElement(task);
+                    this.taskList.appendChild(taskElement);
+                });
+                
+                if (filteredTasks.length > 0 && this.currentTaskEl.textContent === 'No task selected') {
+                    this.currentTaskEl.textContent = filteredTasks[0].text;
+                    const firstTask = document.getElementById(`task-${filteredTasks[0].id}`);
+                    if (firstTask) firstTask.style.background = 'rgba(67, 97, 238, 0.1)';
+                }
+            }
+
+            createTaskElement(task) {
+                const taskElement = document.createElement('div');
+                taskElement.className = `task-item ${task.priority}-priority ${task.completed ? 'completed' : ''} entering`;
+                taskElement.id = `task-${task.id}`;
+                taskElement.draggable = true;
+                
+                const startDate = task.startDate ? new Date(task.startDate).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric'
+                }) : '';
+                
+                const endDate = task.endDate ? new Date(task.endDate).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric'
+                }) : '';
+                
+                const progress = task.completed ? 100 : 0;
+                
+                taskElement.innerHTML = `
+                    <div class="task-checkbox ${task.completed ? 'checked' : ''}"></div>
+                    <div class="task-content">
+                        <div class="task-title">${task.text}</div>
+                        <div class="task-meta">
+                            <span class="task-tag priority-${task.priority}">${task.priority.charAt(0).toUpperCase() + task.priority.slice(1)} Priority</span>
+                            <span class="task-tag category">${task.category.charAt(0).toUpperCase() + task.category.slice(1)}</span>
+                            ${startDate ? `<span class="task-tag task-date">
+                                <i class="fas fa-play-circle"></i> ${startDate}
+                            </span>` : ''}
+                            ${endDate ? `<span class="task-tag task-date">
+                                <i class="fas fa-flag-checkered"></i> ${endDate}
+                            </span>` : ''}
+                        </div>
+                        <div class="task-progress">
+                            <div class="task-progress-bar" style="width: ${progress}%"></div>
+                        </div>
+                    </div>
+                    <div class="task-actions">
+                        <button class="task-btn edit">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="task-btn delete">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                `;
+                
+                const checkbox = taskElement.querySelector('.task-checkbox');
+                checkbox.addEventListener('click', () => this.toggleTask(task.id));
+                
+                const deleteBtn = taskElement.querySelector('.task-btn.delete');
+                deleteBtn.addEventListener('click', () => this.showDeleteConfirmation(task.id));
+                
+                const editBtn = taskElement.querySelector('.task-btn.edit');
+                editBtn.addEventListener('click', () => this.editTask(task.id));
+                
+                taskElement.addEventListener('click', (e) => {
+                    if (!e.target.classList.contains('task-btn')) {
+                        this.currentTaskEl.textContent = task.text;
+                        
+                        document.querySelectorAll('.task-item').forEach(t => t.style.background = 'var(--light)');
+                        taskElement.style.background = 'rgba(67, 97, 238, 0.1)';
+                        
+                        if (this.settingsManager.settings.focus.autoStart && !task.completed) {
+                            this.enterFocusMode();
+                        }
+                    }
+                });
+                
+                setTimeout(() => {
+                    taskElement.classList.remove('entering');
+                }, 500);
+                
+                return taskElement;
+            }
+
+            async toggleTask(id) {
+                if (await this.taskManager.toggleTask(id)) {
+                    this.updateStats();
+                    this.updateCategoryCounts();
+                    this.renderCalendar();
+                    
+                    setTimeout(() => this.renderTasks(), 300);
+                } else {
+                    this.showToast('Failed to update task', 'error');
+                }
+            }
+
+            showDeleteConfirmation(id) {
+                this.showConfirmationModal(
+                    'Are you sure you want to delete this task?',
+                    () => this.deleteTask(id)
+                );
+            }
+
+            async deleteTask(id) {
+                const taskElement = document.getElementById(`task-${id}`);
+                if (taskElement) {
+                    taskElement.classList.add('exiting');
+                    
+                    setTimeout(async () => {
+                        if (await this.taskManager.deleteTask(id)) {
+                            this.renderTasks();
+                            this.updateStats();
+                            this.updateCategoryCounts();
+                            this.renderCalendar();
+                            this.showToast('Task deleted successfully', 'success');
+                        } else {
+                            this.showToast('Failed to delete task', 'error');
+                        }
+                    }, 500);
+                }
+            }
+
+            editTask(id) {
+                const task = this.taskManager.tasks.find(task => task.id === id);
+                if (!task) return;
+                
+                this.editTaskText.value = task.text;
+                this.editTaskPriority.value = task.priority;
+                this.editTaskCategory.value = task.category;
+                this.editTaskStartDate.value = task.startDate || '';
+                this.editTaskEndDate.value = task.endDate || '';
+                this.editTaskNotes.value = task.notes || '';
+                
+                this.taskManager.currentEditId = id;
+                this.showModal();
+            }
+
+            async saveTaskChanges() {
+                if (!this.taskManager.currentEditId) return;
+                
+                const text = this.editTaskText.value.trim();
+                if (text === '') {
+                    this.shakeElement(this.editTaskText);
+                    return;
+                }
+                
+                const updatedTask = {
+                    text: text,
+                    priority: this.editTaskPriority.value,
+                    category: this.editTaskCategory.value,
+                    startDate: this.editTaskStartDate.value,
+                    endDate: this.editTaskEndDate.value,
+                    notes: this.editTaskNotes.value
+                };
+                
+                if (await this.taskManager.updateTask(this.taskManager.currentEditId, updatedTask)) {
+                    this.renderTasks();
+                    this.updateStats();
+                    this.updateCategoryCounts();
+                    this.renderCalendar();
+                    this.hideModal();
+                    this.showToast('Task updated successfully', 'success');
+                } else {
+                    this.showToast('Failed to update task', 'error');
+                }
+            }
+
+            showModal() {
+                this.taskModal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+
+            hideModal() {
+                this.taskModal.classList.remove('active');
+                document.body.style.overflow = 'auto';
+                this.taskManager.currentEditId = null;
+            }
+
+            showConfirmationModal(message, callback) {
+                this.confirmationText.textContent = message;
+                this.taskManager.confirmationCallback = callback;
+                this.confirmationModal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+
+            hideConfirmationModal() {
+                this.confirmationModal.classList.remove('active');
+                document.body.style.overflow = 'auto';
+                this.taskManager.confirmationCallback = null;
+            }
+
+            toggleTheme() {
+                document.body.classList.toggle('dark-mode');
+                const isDarkMode = document.body.classList.contains('dark-mode');
+                this.settingsManager.updateSetting('appearance', 'darkMode', isDarkMode);
+                
+                if (isDarkMode) {
+                    this.themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+                } else {
+                    this.themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
+                }
+            }
+
+            scrollToStopwatch() {
+                if (this.currentPage !== 'dashboard') {
+                    this.showPage('dashboard');
+                    
+                    setTimeout(() => {
+                        const stopwatchSection = document.getElementById('stopwatch-section');
+                        if (stopwatchSection) {
+                            stopwatchSection.scrollIntoView({ behavior: 'smooth' });
+                        }
+                    }, 300);
+                } else {
+                    const stopwatchSection = document.getElementById('stopwatch-section');
+                    if (stopwatchSection) {
+                        stopwatchSection.scrollIntoView({ behavior: 'smooth' });
+                    }
+                }
+            }
+
+            enterFocusMode() {
+                const activeTasks = this.taskManager.tasks.filter(task => !task.completed);
+                if (activeTasks.length === 0) {
+                    this.showToast('No active tasks', 'error');
+                    return;
+                }
+                
+                let focusTaskText = this.currentTaskEl.textContent;
+                if (focusTaskText === 'No task selected') {
+                    const randomTask = activeTasks[Math.floor(Math.random() * activeTasks.length)];
+                    focusTaskText = randomTask.text;
+                }
+                
+                this.focusTask.textContent = focusTaskText;
+                this.focusMode.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+
+            exitFocusMode() {
+                this.focusMode.classList.remove('active');
+                document.body.style.overflow = 'auto';
+                this.pauseFocusTimer();
+                this.focusTimerSeconds = this.settingsManager.settings.focus.defaultDuration * 60;
+                this.updateFocusTimerDisplay();
+            }
+
+            startStopwatchTimer() {
+                if (this.isStopwatchRunning) return;
+                
+                this.isStopwatchRunning = true;
+                this.stopwatchInterval = setInterval(() => {
+                    this.stopwatchSeconds++;
+                    this.updateStopwatchDisplay();
+                }, 1000);
+            }
+
+            pauseStopwatchTimer() {
+                if (this.isStopwatchRunning) {
+                    this.isStopwatchRunning = false;
+                    clearInterval(this.stopwatchInterval);
+                }
+            }
+
+            resetStopwatchTimer() {
+                this.pauseStopwatchTimer();
+                this.stopwatchSeconds = 0;
+                this.updateStopwatchDisplay();
+            }
+
+            updateStopwatchDisplay() {
+                const hours = Math.floor(this.stopwatchSeconds / 3600);
+                const minutes = Math.floor((this.stopwatchSeconds % 3600) / 60);
+                const seconds = this.stopwatchSeconds % 60;
+                
+                this.stopwatchDisplay.textContent = 
+                    `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            }
+
+            startFocusTimer() {
+                if (this.isFocusModeRunning) return;
+                
+                this.isFocusModeRunning = true;
+                this.focusTimerInterval = setInterval(() => {
+                    this.focusTimerSeconds--;
+                    this.updateFocusTimerDisplay();
+                    
+                    if (this.focusTimerSeconds <= 0) {
+                        clearInterval(this.focusTimerInterval);
+                        this.isFocusModeRunning = false;
+                        this.showToast('Focus session completed', 'success');
+                        this.exitFocusMode();
+                    }
+                }, 1000);
+            }
+
+            pauseFocusTimer() {
+                if (this.isFocusModeRunning) {
+                    this.isFocusModeRunning = false;
+                    clearInterval(this.focusTimerInterval);
+                }
+            }
+
+            updateFocusTimerDisplay() {
+                const minutes = Math.floor(this.focusTimerSeconds / 60);
+                const seconds = this.focusTimerSeconds % 60;
+                this.focusTimer.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            }
+
+            renderCalendar() {
+                const firstDay = new Date(this.currentYear, this.currentMonth, 1);
+                const lastDay = new Date(this.currentYear, this.currentMonth + 1, 0);
+                const startingDay = firstDay.getDay();
+                const monthLength = lastDay.getDate();
+                
+                this.currentMonthEl.textContent = firstDay.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+                
+                this.calendarGrid.innerHTML = '';
+                
+                const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                
+                days.forEach(day => {
+                    const dayElement = document.createElement('div');
+                    dayElement.className = 'calendar-day';
+                    dayElement.textContent = day;
+                    this.calendarGrid.appendChild(dayElement);
+                });
+                
+                for (let i = 0; i < startingDay; i++) {
+                    const emptyElement = document.createElement('div');
+                    emptyElement.className = 'calendar-date';
+                    this.calendarGrid.appendChild(emptyElement);
+                }
+                
+                for (let i = 1; i <= monthLength; i++) {
+                    const dateElement = document.createElement('div');
+                    dateElement.className = 'calendar-date';
+                    dateElement.textContent = i;
+                    
+                    const dateString = `${this.currentYear}-${(this.currentMonth + 1).toString().padStart(2, '0')}-${i.toString().padStart(2, '0')}`;
+                    const hasTasks = this.taskManager.tasks.some(task => 
+                        (task.startDate === dateString || task.endDate === dateString) && !task.completed
+                    );
+                    
+                    if (hasTasks) {
+                        dateElement.classList.add('has-tasks');
+                    }
+                    
+                    const today = new Date();
+                    if (i === today.getDate() && this.currentMonth === today.getMonth() && this.currentYear === today.getFullYear()) {
+                        dateElement.classList.add('active');
+                    }
+                    
+                    this.calendarGrid.appendChild(dateElement);
+                }
+            }
+
+            prevMonth() {
+                this.currentMonth--;
+                if (this.currentMonth < 0) {
+                    this.currentMonth = 11;
+                    this.currentYear--;
+                }
+                this.renderCalendar();
+            }
+
+            nextMonth() {
+                this.currentMonth++;
+                if (this.currentMonth > 11) {
+                    this.currentMonth = 0;
+                    this.currentYear++;
+                }
+                this.renderCalendar();
+            }
+
+            showToast(message, type) {
+                this.toast.className = `toast ${type}`;
+                this.toastText.textContent = message;
+                
+                const icon = this.toast.querySelector('i');
+                icon.className = type === 'success' ? 'fas fa-check-circle' : 
+                                type === 'warning' ? 'fas fa-exclamation-triangle' : 
+                                type === 'error' ? 'fas fa-exclamation-circle' : 'fas fa-info-circle';
+                
+                this.toast.classList.add('show');
+                
+                setTimeout(() => {
+                    this.toast.classList.remove('show');
+                }, 3000);
+            }
+
+            showConnectionStatus(message, type) {
+                this.connectionStatus.className = `connection-status ${type}`;
+                this.connectionText.textContent = message;
+                
+                const icon = this.connectionStatus.querySelector('i');
+                icon.className = type === 'online' ? 'fas fa-wifi' : 'fas fa-wifi-slash';
+                
+                this.connectionStatus.classList.add('show');
+                
+                setTimeout(() => {
+                    this.connectionStatus.classList.remove('show');
+                }, 3000);
+            }
+
+            shakeElement(element) {
+                element.classList.add('shake');
+                setTimeout(() => {
+                    element.classList.remove('shake');
+                }, 500);
+            }
+
+            updateStats() {
+                const stats = this.taskManager.getStats();
+                
+                this.totalTasksEl.textContent = stats.totalTasks;
+                this.completedTasksEl.textContent = stats.completedTasks;
+                this.pendingTasksEl.textContent = stats.pendingTasks;
+                this.overdueTasksEl.textContent = stats.overdueTasks;                
+                const progress = stats.totalTasks > 0 ? (stats.completedTasks / stats.totalTasks) * 100 : 0;
+                const progressCircle = document.querySelector('.progress-circle circle:nth-child(2)');
+                const progressText = document.querySelector('.progress-text');
+                
+                if (progressCircle && progressText) {
+                    const circumference = 2 * Math.PI * 45;
+                    const offset = circumference - (progress / 100) * circumference;
+                    progressCircle.style.strokeDashoffset = offset;
+                    progressText.textContent = Math.round(progress) + '%';
+                }
+            }
+
+            updateCategoryCounts() {
+                const categories = this.taskManager.getCategoryCounts();                
+                document.getElementById('allTasksCount').textContent = this.taskManager.tasks.length;
+                document.getElementById('allCount').textContent = categories.all;
+                document.getElementById('programmingCount').textContent = categories.programming;
+                document.getElementById('theoryCount').textContent = categories.theory;
+                document.getElementById('projectsCount').textContent = categories.projects;
+                document.getElementById('examsCount').textContent = categories.exams;
+            }
+
+            exportData() {
+                const dataUrl = this.taskManager.exportData();
+                const a = document.createElement('a');
+                a.href = dataUrl;
+                a.download = `studyflow-backup-${new Date().toISOString().split('T')[0]}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                
+                this.showToast('Data exported successfully', 'success');
+            }
+
+            importData() {
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = '.json';
+                input.onchange = e => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = event => {
+                        const result = this.taskManager.importData(event.target.result);
+                        if (result.success) {
+                            this.renderTasks();
+                            this.updateStats();
+                            this.updateCategoryCounts();
+                            this.renderCalendar();
+                            this.showToast('Data imported successfully', 'success');
+                        } else {
+                            this.showToast('Failed to import data', 'error');
+                        }
+                    };
+                    reader.readAsText(file);
+                };
+                input.click();
+            }
+
+            showSortOptions() {
+                this.taskManager.tasks.sort((a, b) => {
+                    if (!a.endDate) return 1;
+                    if (!b.endDate) return -1;
+                    return new Date(a.endDate) - new Date(b.endDate);
+                });
+                
+                this.taskManager.saveTasks();
+                this.renderTasks();
+                this.showToast('Tasks sorted by due date', 'success');
+            }
+
+            showAdvancedFilters() {
+                this.showToast('Advanced filters coming soon', 'info');
+            }
+
+            nextTourStep() {
+                this.currentTourStep++;
+                
+                if (this.currentTourStep > 3) {
+                    this.onboardingTour.classList.remove('active');
+                    this.settingsManager.updateSetting('onboarding', 'completed', true);
+                    return;
+                }
+                const tourStep = document.querySelector('.tour-step');
+                switch (this.currentTourStep) {
+                    case 2:
+                        tourStep.innerHTML = `
+                            <h3>Adding Tasks</h3>
+                            <p>Type your task in the input field and press Enter or click "Add Task". You can set priority and category for better organization.</p>
+                            <div class="tour-actions">
+                                <button class="action-btn btn-cancel" id="skipTour">Skip Tour</button>
+                                <button class="action-btn primary next-step">Next</button>
+                            </div>
+                        `;
+                        break;
+                    case 3:
+                        tourStep.innerHTML = `
+                            <h3>Focus Mode</h3>
+                            <p>Click on any task and then press the Focus Mode button to enter a distraction-free environment for that specific task.</p>
+                            <div class="tour-actions">
+                                <button class="action-btn btn-cancel" id="skipTour">Skip Tour</button>
+                                <button class="action-btn primary next-step">Finish</button>
+                            </div>
+                        `;
+                        break;
+                }                
+                document.getElementById('skipTour').addEventListener('click', () => {
+                    this.onboardingTour.classList.remove('active');
+                    this.settingsManager.updateSetting('onboarding', 'completed', true);
+                });
+                document.querySelector('.next-step').addEventListener('click', () => {
+                    this.nextTourStep();
+                });
+            }
+
+            clearAllData() {
+                localStorage.removeItem('studyTasks');
+                localStorage.removeItem('studyFlowSettings');                
+                if (this.taskManager.db) {
+                    const transaction = this.taskManager.db.transaction(['tasks'], 'readwrite');
+                    const store = transaction.objectStore('tasks');
+                    store.clear();
+                }
+                this.taskManager.tasks = [];
+                this.settingsManager.settings = this.settingsManager.getDefaultSettings();
+                this.renderTasks();
+                this.updateStats();
+                this.updateCategoryCounts();
+                this.renderCalendar();
+                this.loadSettings();
+                this.showToast('All data cleared', 'success');
+            }
+
+            applyLanguage() {
+                document.documentElement.dir = 'ltr';
+                document.documentElement.lang = 'en';
+                document.title = 'StudyFlow - Advanced Task Manager';                
+                this.updateTranslatableElements();
+                this.setCurrentDate();
+                this.renderTasks();
+                this.renderCalendar();
+            }
+
+            updateTranslatableElements() {
+                this.searchInput.placeholder = 'Search tasks...';                
+                this.taskInput.placeholder = 'Add a new task...';                
+                this.addTaskBtn.innerHTML = '<i class="fas fa-plus"></i> Add Task';                
+                this.filterBtns[0].textContent = 'All Tasks';
+                this.filterBtns[1].textContent = 'Active';
+                this.filterBtns[2].textContent = 'Completed';
+                this.filterBtns[3].textContent = 'Due Today';
+                const emptyStateText = this.emptyState.querySelectorAll('p');
+                emptyStateText[0].textContent = 'You don\'t have any tasks yet';
+                emptyStateText[1].textContent = 'Add a task to get started!';                
+                this.startStopwatch.innerHTML = '<i class="fas fa-play"></i> Start';
+                this.pauseStopwatch.innerHTML = '<i class="fas fa-pause"></i> Pause';
+                this.resetStopwatch.innerHTML = '<i class="fas fa-redo"></i> Reset';
+                const currentTaskTitle = this.currentTaskEl.previousElementSibling;
+                currentTaskTitle.textContent = 'Current Task';
+                this.focusStart.innerHTML = '<i class="fas fa-play"></i> Start';
+                this.focusPause.innerHTML = '<i class="fas fa-pause"></i> Pause';
+                this.focusExit.innerHTML = '<i class="fas fa-times"></i> Exit';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', async function() {
+            const taskManager = new TaskManager();
+            const settingsManager = new SettingsManager();
+            const uiManager = new UIManager(taskManager, settingsManager);
+            window.uiManager = uiManager;
+        });
+    </script>
+</body>
+</html>
